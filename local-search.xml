@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>Redis 基础数据结构及应用场景</title>
+    <link href="/2024/08/01/Redis-%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/"/>
+    <url>/2024/08/01/Redis-%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/</url>
+    
+    <content type="html"><![CDATA[<p>这一篇内容主要内容为redis的基础数据结构内容，以及各数据类型具体的应用场景，并且简单地使用Java中的redisTemplate和redission进行操作展示伪代码。</p><h2 id="1-前言"><a href="#1-前言" class="headerlink" title="1 前言"></a>1 前言</h2><p>总所周知，缓存是个好东西无论是在硬件设计而言还是在软件设计而言，在计算能力一定的情况下，系统的效率大多受到IO效率的影响。现在我们举个具体生活中的假设的例子。</p><h3 id="1-1-无缓存的蜜雪"><a href="#1-1-无缓存的蜜雪" class="headerlink" title="1.1 无缓存的蜜雪"></a>1.1 无缓存的蜜雪</h3><p>蜜雪冰城的饮品物美价廉且制作迅速，假设没有“缓存”存在的情况下，人们和奶茶店像是隔了一条马路。当店员制作完成一杯奶茶时，会通知马路对面的顾客取餐。等到顾客取到奶茶后，再进行下一杯奶茶的制作。这个过程中整体流程的进度完全受到顾客过马路的大大拖累。</p><h3 id="1-2-缓存的蜜雪"><a href="#1-2-缓存的蜜雪" class="headerlink" title="1.2 缓存的蜜雪"></a>1.2 缓存的蜜雪</h3><p>存在“缓存”的情况，懂点小知识的店员将在店内开辟一个“缓存空间”优化过马路的过程，将过马路和制作奶茶的行为同时进行。且在店内空间取得过程和之前相较而言时间缩减不少。这就是缓存得意义，及提高IO效率提升系统得整体效率。</p><h2 id="2-Redis"><a href="#2-Redis" class="headerlink" title="2 Redis"></a>2 Redis</h2><p><a href="https://redis.io/">Redis</a>全称名为(Remote Dictionary Server)，及远程字典服务。这是一款使用C语言编写的、支持网络、可基于内存同时可以持久化的日志型、key-Value数据库。优于其基于内存做的设计，读写速度奇快每秒可操作<strong>10万次</strong>读写操作。</p><h3 id="2-1-Redis-数据结构"><a href="#2-1-Redis-数据结构" class="headerlink" title="2.1 Redis 数据结构"></a>2.1 Redis 数据结构</h3><p>Redis提供五种基本数据结构提供给用户使用。</p><ul><li>String (字符串)<br>可以存储任意类型的数据</li></ul><br><ul><li>List (列表)<br>可存储多个有序的字符串，一个列表。最多可以存储<strong>2^32-1</strong>个元素。可作为<strong>栈</strong>、<strong>队列</strong>或<strong>有限集合</strong>使用。</li></ul><br><ul><li>Set (集合)<br>  保存多个字符串元素，不允许出现重复元素。支持<strong>交集</strong>、<strong>并集</strong>和<strong>差集</strong>操作。</li></ul><br><ul><li>Hash (散列)<br>  String类型的<strong>filed-value</strong>(键值对)映射表。类比Java数据结构中HashMap。</li></ul><br><ul><li>Zset (有序集合)<br>  <strong>已排序</strong>的字符串集合，元素<strong>不重复</strong>，各元素关联一个double类型分数。Redis根据分数进行排序。</li></ul><h3 id="3-Redis-应用场景"><a href="#3-Redis-应用场景" class="headerlink" title="3 Redis 应用场景"></a>3 Redis 应用场景</h3><h4 id="3-1-数据库的缓存"><a href="#3-1-数据库的缓存" class="headerlink" title="3.1 数据库的缓存"></a>3.1 数据库的缓存</h4><ul><li><p>缓存穿透</p></li><li><p>缓存击穿</p></li><li><p>缓存雪崩</p></li></ul><h4 id="3-2-消息队列"><a href="#3-2-消息队列" class="headerlink" title="3.2 消息队列"></a>3.2 消息队列</h4><p>Redis的List数据类型可以实现简单的消息队列功能，支持阻塞式读取和发布&#x2F;订阅模式。</p><h4 id="3-3-计数器"><a href="#3-3-计数器" class="headerlink" title="3.3 计数器"></a>3.3 计数器</h4><p>Redis的String数据类型支持自增自减操作，适合作为计数器使用。该应用场景可以用于对于某个直播、贴文、视频的在线浏览数量。</p><h4 id="3-4-排行榜"><a href="#3-4-排行榜" class="headerlink" title="3.4 排行榜"></a>3.4 排行榜</h4><p>Redis的Zset数据结构是根据double数据类型进行有序排序的，可以实现热榜的盘列，游戏榜单的排序等。</p><h4 id="3-5-分布式锁"><a href="#3-5-分布式锁" class="headerlink" title="3.5 分布式锁"></a>3.5 分布式锁</h4><p>Redis支持事务和原子性操作，可以用来实现分布式操作。</p><h3 id="4-Redis-持久化"><a href="#4-Redis-持久化" class="headerlink" title="4 Redis 持久化"></a>4 Redis 持久化</h3><h4 id="4-1-RDB-Redis-Database"><a href="#4-1-RDB-Redis-Database" class="headerlink" title="4.1 RDB (Redis Database)"></a>4.1 RDB (Redis Database)</h4><h4 id="4-2-AOF-Append-Only-File"><a href="#4-2-AOF-Append-Only-File" class="headerlink" title="4.2 AOF (Append Only File)"></a>4.2 AOF (Append Only File)</h4>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Redis</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Hello World</title>
     <link href="/2024/08/01/hello-world/"/>
     <url>/2024/08/01/hello-world/</url>
