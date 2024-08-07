@@ -28,9 +28,9 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/image/bean_lifecycle.png">
 <meta property="article:published_time" content="2024-08-07T07:53:36.000Z">
-<meta property="article:modified_time" content="2024-08-07T09:54:09.480Z">
+<meta property="article:modified_time" content="2024-08-07T15:03:29.061Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="Spring Bean">
+<meta property="article:tag" content="SpringBean Spring Bean生命周期">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="http://example.com/image/bean_lifecycle.png">
   
@@ -292,8 +292,6 @@
 <ol>
 <li><strong>Bean</strong> 定义与注册阶段</li>
 </ol>
-<br>
-
 <ul>
 <li><p><strong>Bean元信息配置阶段</strong>：此阶段主要是Bean信息的定义阶段，可以通过XML配置文件、Java配置类、注解（如@Component）或API方式定义Bean。</p>
 </li>
@@ -307,8 +305,6 @@
 <ol start="2">
 <li><strong>Bean</strong> 实例化阶段</li>
 </ol>
-<br>
-
 <ul>
 <li><p><strong>Bean Class加载阶段</strong>：将BeanDefinition中的beanClassName转换为Class对象。</p>
 </li>
@@ -320,8 +316,6 @@
 <ol start="3">
 <li><strong>Bean</strong> 依赖注入阶段</li>
 </ol>
-<br>
-
 <ul>
 <li><strong>属性设置</strong>：Spring容器将Bean的依赖注入到Bean实例中，完成属性的设置。这通常通过反射机制调用Bean的setter方法或构造方法注入依赖。</li>
 <li><strong>Aware接口回调</strong>：Spring会检测Bean是否实现了特定的Aware接口（如BeanFactoryAware、ApplicationContextAware等），并调用相应的方法，将Spring容器的实例或其他相关对象注入到Bean中。</li>
@@ -331,8 +325,6 @@
 <ol start="4">
 <li><strong>Bean</strong> 初始化阶段</li>
 </ol>
-<br>
-
 <ul>
 <li><strong>BeanPostProcessor前置处理</strong>：如果容器中存在BeanPostProcessor的实现，那么会在Bean初始化前后执行相应的回调方法（如postProcessBeforeInitialization）。</li>
 <li><strong>自定义初始化方法</strong>：Spring提供了多种方式定义Bean的初始化方法，包括使用@PostConstruct注解、实现InitializingBean接口或在XML配置中指定init-method属性。这些方法会在Bean属性设置完成后执行，用于执行一些自定义的初始化逻辑。</li>
@@ -340,11 +332,9 @@
 </ul>
 <br>
 
-<ol>
+<ol start="5">
 <li><strong>Bean</strong> 就绪使用阶段</li>
 </ol>
-<br>
-
 <ul>
 <li><strong>Bean使用</strong>：经过上述阶段后，Bean被完全初始化并准备就绪，可以被应用程序使用。</li>
 </ul>
@@ -353,16 +343,9 @@
 <ol start="6">
 <li><strong>Bean</strong> 初始化阶段</li>
 </ol>
-<br>
-
 <ul>
 <li><strong>Bean销毁</strong>：当Spring容器关闭时，会触发Bean的销毁过程。如果Bean实现了DisposableBean接口或在配置中指定了destroy-method属性，那么会调用相应的方法执行销毁逻辑。</li>
 </ul>
-<br>
-
-<ol>
-<li><strong>Bean</strong> 销毁阶段</li>
-</ol>
 <h3 id="二-、生命周期（图像描述）"><a href="#二-、生命周期（图像描述）" class="headerlink" title="二 、生命周期（图像描述）"></a>二 、生命周期（图像描述）</h3><p>整体的生命周期如下图所示。</p>
 <p><img src="/../image/bean_lifecycle.png" srcset="/img/loading.gif" lazyload></p>
 <h3 id="三-、生命周期（代码演示）"><a href="#三-、生命周期（代码演示）" class="headerlink" title="三 、生命周期（代码演示）"></a>三 、生命周期（代码演示）</h3><ul>
@@ -395,7 +378,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Spring-Bean/" class="print-no-link">#Spring Bean</a>
+        <a href="/tags/SpringBean-Spring-Bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" class="print-no-link">#SpringBean Spring Bean生命周期</a>
       
     </div>
   
@@ -451,6 +434,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2024/08/07/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%9Asychronized%E5%92%8CReentrantLock/" title="Java多线程：sychronized和ReentrantLock">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Java多线程：sychronized和ReentrantLock</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
