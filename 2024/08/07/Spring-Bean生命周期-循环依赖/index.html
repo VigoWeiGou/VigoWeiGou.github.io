@@ -1,0 +1,727 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=light>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Bean 生命周期一、生命周期（文字叙述） 通过BeanDefinition获取bean的定义信息 通过构造函数实例化bean bean的依赖注入 处理Aware接口 （BeanFactoryAware、BeanFactoryAware、ApplicationContextAware） Bean的后置处理器BeanPostProcessor-前置 初始化方法（InitializingBean、in">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Bean生命周期&amp;循环依赖">
+<meta property="og:url" content="http://example.com/2024/08/07/Spring-Bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Bean 生命周期一、生命周期（文字叙述） 通过BeanDefinition获取bean的定义信息 通过构造函数实例化bean bean的依赖注入 处理Aware接口 （BeanFactoryAware、BeanFactoryAware、ApplicationContextAware） Bean的后置处理器BeanPostProcessor-前置 初始化方法（InitializingBean、in">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/image/bean_lifecycle.png">
+<meta property="article:published_time" content="2024-08-07T07:53:36.000Z">
+<meta property="article:modified_time" content="2024-08-07T09:54:09.480Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Spring Bean">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/image/bean_lifecycle.png">
+  
+  
+  
+  <title>Spring Bean生命周期&amp;循环依赖 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Spring Bean生命周期&amp;循环依赖"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-08-07 15:53" pubdate>
+          2024年8月7日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Spring Bean生命周期&amp;循环依赖</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Bean-生命周期"><a href="#Bean-生命周期" class="headerlink" title="Bean 生命周期"></a>Bean 生命周期</h2><h3 id="一、生命周期（文字叙述）"><a href="#一、生命周期（文字叙述）" class="headerlink" title="一、生命周期（文字叙述）"></a>一、生命周期（文字叙述）</h3><ol>
+<li>通过BeanDefinition获取bean的定义信息</li>
+<li>通过构造函数实例化bean</li>
+<li>bean的依赖注入</li>
+<li>处理Aware接口 （BeanFactoryAware、BeanFactoryAware、ApplicationContextAware）</li>
+<li>Bean的后置处理器BeanPostProcessor-前置</li>
+<li>初始化方法（InitializingBean、init-method）</li>
+<li>Bean的后置处理器BeanPostProcessor-后置</li>
+<li>销毁Bean</li>
+</ol>
+<p>这个叙述过程对于理解比较困难，结合实际使用Spring的情况下可以如此去理解这段话的含义。</p>
+<ol>
+<li><strong>Bean</strong> 定义与注册阶段</li>
+</ol>
+<br>
+
+<ul>
+<li><p><strong>Bean元信息配置阶段</strong>：此阶段主要是Bean信息的定义阶段，可以通过XML配置文件、Java配置类、注解（如@Component）或API方式定义Bean。</p>
+</li>
+<li><p><strong>Bean元信息解析阶段</strong>：Spring容器启动过程中，会将Bean定义解析成Spring内部的BeanDefinition结构。</p>
+</li>
+<li><p><strong>Bean注册阶段</strong>：解析后的BeanDefinition会被注册到Spring容器中，通常是通过实现BeanDefinitionRegistry接口的容器类（如DefaultListableBeanFactory）来完成的。</p>
+</li>
+</ul>
+<br>
+
+<ol start="2">
+<li><strong>Bean</strong> 实例化阶段</li>
+</ol>
+<br>
+
+<ul>
+<li><p><strong>Bean Class加载阶段</strong>：将BeanDefinition中的beanClassName转换为Class对象。</p>
+</li>
+<li><p><strong>Bean实例化</strong>：Spring容器根据BeanDefinition中的信息创建Bean实例。对于ApplicationContext容器，通常在容器初始化完成后就实例化所有Bean；而对于BeanFactory容器，则是延迟实例化，即在调用getBean方法时才会实例化。</p>
+</li>
+</ul>
+<br>
+
+<ol start="3">
+<li><strong>Bean</strong> 依赖注入阶段</li>
+</ol>
+<br>
+
+<ul>
+<li><strong>属性设置</strong>：Spring容器将Bean的依赖注入到Bean实例中，完成属性的设置。这通常通过反射机制调用Bean的setter方法或构造方法注入依赖。</li>
+<li><strong>Aware接口回调</strong>：Spring会检测Bean是否实现了特定的Aware接口（如BeanFactoryAware、ApplicationContextAware等），并调用相应的方法，将Spring容器的实例或其他相关对象注入到Bean中。</li>
+</ul>
+<br>
+
+<ol start="4">
+<li><strong>Bean</strong> 初始化阶段</li>
+</ol>
+<br>
+
+<ul>
+<li><strong>BeanPostProcessor前置处理</strong>：如果容器中存在BeanPostProcessor的实现，那么会在Bean初始化前后执行相应的回调方法（如postProcessBeforeInitialization）。</li>
+<li><strong>自定义初始化方法</strong>：Spring提供了多种方式定义Bean的初始化方法，包括使用@PostConstruct注解、实现InitializingBean接口或在XML配置中指定init-method属性。这些方法会在Bean属性设置完成后执行，用于执行一些自定义的初始化逻辑。</li>
+<li><strong>BeanPostProcessor后置处理</strong>：在自定义初始化方法执行后，如果存在BeanPostProcessor的实现，会调用其postProcessAfterInitialization方法进行后置处理。</li>
+</ul>
+<br>
+
+<ol>
+<li><strong>Bean</strong> 就绪使用阶段</li>
+</ol>
+<br>
+
+<ul>
+<li><strong>Bean使用</strong>：经过上述阶段后，Bean被完全初始化并准备就绪，可以被应用程序使用。</li>
+</ul>
+<br>
+
+<ol start="6">
+<li><strong>Bean</strong> 初始化阶段</li>
+</ol>
+<br>
+
+<ul>
+<li><strong>Bean销毁</strong>：当Spring容器关闭时，会触发Bean的销毁过程。如果Bean实现了DisposableBean接口或在配置中指定了destroy-method属性，那么会调用相应的方法执行销毁逻辑。</li>
+</ul>
+<br>
+
+<ol>
+<li><strong>Bean</strong> 销毁阶段</li>
+</ol>
+<h3 id="二-、生命周期（图像描述）"><a href="#二-、生命周期（图像描述）" class="headerlink" title="二 、生命周期（图像描述）"></a>二 、生命周期（图像描述）</h3><p>整体的生命周期如下图所示。</p>
+<p><img src="/../image/bean_lifecycle.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="三-、生命周期（代码演示）"><a href="#三-、生命周期（代码演示）" class="headerlink" title="三 、生命周期（代码演示）"></a>三 、生命周期（代码演示）</h3><ul>
+<li>User</li>
+</ul>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><code class="hljs typescript">package org.<span class="hljs-property">example</span>.<span class="hljs-property">lifecycle</span>;<br><br><span class="hljs-keyword">import</span> jakarta.<span class="hljs-property">annotation</span>.<span class="hljs-property">PostConstruct</span>;<br><span class="hljs-keyword">import</span> jakarta.<span class="hljs-property">annotation</span>.<span class="hljs-property">PreDestroy</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">beans</span>.<span class="hljs-property">BeansException</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">beans</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">BeanFactory</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">beans</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">BeanFactoryAware</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">beans</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">BeanNameAware</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">beans</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">InitializingBean</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">beans</span>.<span class="hljs-property">factory</span>.<span class="hljs-property">annotation</span>.<span class="hljs-property">Value</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">context</span>.<span class="hljs-property">ApplicationContext</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">context</span>.<span class="hljs-property">ApplicationContextAware</span>;<br><span class="hljs-keyword">import</span> org.<span class="hljs-property">springframework</span>.<span class="hljs-property">stereotype</span>.<span class="hljs-property">Component</span>;<br><br><span class="hljs-keyword">import</span> java.<span class="hljs-property">util</span>.<span class="hljs-property">Date</span>;<br><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">BeanNameAware</span>, <span class="hljs-title class_">BeanFactoryAware</span>, <span class="hljs-title class_">ApplicationContextAware</span>, <span class="hljs-title class_">InitializingBean</span> &#123;<br>    \\ <br>    <span class="hljs-meta">@Value</span>(<span class="hljs-string">&quot;秦始皇&quot;</span>)<br>    <span class="hljs-keyword">private</span> <span class="hljs-title class_">String</span> userName;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-title class_">Date</span> registerDate;<br>    <span class="hljs-keyword">private</span> <span class="hljs-title class_">String</span> password;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title class_">User</span>() &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;User 的构造方法执行 ------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">setUserName</span>(<span class="hljs-params"><span class="hljs-title class_">String</span> userName</span>) &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;setUserName 依赖注入 ------&quot;</span>);<br>        <span class="hljs-variable language_">this</span>.<span class="hljs-property">userName</span> = userName;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title class_">String</span> <span class="hljs-title function_">getUserName</span>(<span class="hljs-params"></span>) &#123;<br>        <span class="hljs-keyword">return</span> userName;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title class_">Date</span> <span class="hljs-title function_">getRegisterDate</span>(<span class="hljs-params"></span>) &#123;<br>        <span class="hljs-keyword">return</span> registerDate;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">setRegisterDate</span>(<span class="hljs-params"><span class="hljs-title class_">Date</span> registerDate</span>) &#123;<br>        <span class="hljs-variable language_">this</span>.<span class="hljs-property">registerDate</span> = registerDate;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title class_">String</span> <span class="hljs-title function_">getPassword</span>(<span class="hljs-params"></span>) &#123;<br>        <span class="hljs-keyword">return</span> password;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">setPassword</span>(<span class="hljs-params"><span class="hljs-title class_">String</span> password</span>) &#123;<br>        <span class="hljs-variable language_">this</span>.<span class="hljs-property">password</span> = password;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">setBeanFactory</span>(<span class="hljs-title class_">BeanFactory</span> beanFactory) throws <span class="hljs-title class_">BeansException</span> &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;beanFactory 方法执行 -------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">setBeanName</span>(<span class="hljs-params"><span class="hljs-title class_">String</span> name</span>) &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;setBeanName 方法执行---------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">setApplicationContext</span>(<span class="hljs-title class_">ApplicationContext</span> applicationContext) throws <span class="hljs-title class_">BeansException</span> &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;setApplicationContext方法执行了------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     *  自定义 init() 方法</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@PostConstruct</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">init</span>(<span class="hljs-params"></span>) &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;init方法执行---------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 实现 InitializingBean 接口</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@throws</span> <span class="hljs-variable">Exception</span></span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">afterPropertiesSet</span>() throws <span class="hljs-title class_">Exception</span> &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;afterPropertiesSet方法执行----------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@PreDestroy</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-built_in">void</span> <span class="hljs-title function_">destroy</span>(<span class="hljs-params"></span>) &#123;<br>        <span class="hljs-title class_">System</span>.<span class="hljs-property">out</span>.<span class="hljs-title function_">println</span>(<span class="hljs-string">&quot;destroy方法执行---------&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-title class_">String</span> <span class="hljs-title function_">toString</span>(<span class="hljs-params"></span>) &#123;<br>        final <span class="hljs-title class_">StringBuffer</span> sb = <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuffer</span>(<span class="hljs-string">&quot;User&#123;&quot;</span>);<br>        sb.<span class="hljs-title function_">append</span>(<span class="hljs-string">&quot;userName=&#x27;&quot;</span>).<span class="hljs-title function_">append</span>(userName).<span class="hljs-title function_">append</span>(<span class="hljs-string">&#x27;\&#x27;&#x27;</span>);<br>        sb.<span class="hljs-title function_">append</span>(<span class="hljs-string">&quot;, registerDate=&quot;</span>).<span class="hljs-title function_">append</span>(registerDate);<br>        sb.<span class="hljs-title function_">append</span>(<span class="hljs-string">&quot;, password=&#x27;&quot;</span>).<span class="hljs-title function_">append</span>(password).<span class="hljs-title function_">append</span>(<span class="hljs-string">&#x27;\&#x27;&#x27;</span>);<br>        sb.<span class="hljs-title function_">append</span>(<span class="hljs-string">&#x27;&#125;&#x27;</span>);<br>        <span class="hljs-keyword">return</span> sb.<span class="hljs-title function_">toString</span>();<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<ul>
+<li>MyBeanPostProcessor</li>
+</ul>
+<p>实现BeanPostProcessor接口的方法，根据我们书写的User类名，来打印指定User生成的Bean的信息和执行过程。动态加载的形式调用User的方法toString()方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> org.example.lifecycle;<br><br><span class="hljs-keyword">import</span> org.springframework.beans.BeansException;<br><span class="hljs-keyword">import</span> org.springframework.beans.factory.config.BeanPostProcessor;<br><span class="hljs-keyword">import</span> org.springframework.cglib.proxy.Enhancer;<br><span class="hljs-keyword">import</span> org.springframework.cglib.proxy.InvocationHandler;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><br><span class="hljs-meta">@Configuration</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MyBeanPostProcessor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">BeanPostProcessor</span> &#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 前置方法</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> bean</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> beanName</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     * <span class="hljs-doctag">@throws</span> BeansException</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">postProcessBeforeInitialization</span><span class="hljs-params">(Object bean, String beanName)</span> <span class="hljs-keyword">throws</span> BeansException &#123;<br>        <span class="hljs-keyword">if</span> (beanName.equals(<span class="hljs-string">&quot;user&quot;</span>)) &#123;<br>            System.out.println(<span class="hljs-string">&quot;postProcessBeforeInitialization方法 -&gt; user对象初始化前增强&quot;</span>);<br>        &#125;<br>        <span class="hljs-keyword">return</span> bean;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">postProcessAfterInitialization</span><span class="hljs-params">(Object bean, String beanName)</span> <span class="hljs-keyword">throws</span> BeansException &#123;<br>        <span class="hljs-keyword">if</span> (beanName.equals(<span class="hljs-string">&quot;user&quot;</span>)) &#123;<br>            System.out.println(<span class="hljs-string">&quot;postProcessAfterInitialization方法 -&gt; user对象方法初始化后开始增强&quot;</span>);<br>            <span class="hljs-comment">// cglib 代理对象</span><br>            <span class="hljs-type">Enhancer</span> <span class="hljs-variable">enhancer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Enhancer</span>();<br>            <span class="hljs-comment">// 设置需要增强的类</span><br>            enhancer.setSuperclass(bean.getClass());<br>            <span class="hljs-comment">// 执行回调方法 增强方法</span><br>            enhancer.setCallback(<span class="hljs-keyword">new</span> <span class="hljs-title class_">InvocationHandler</span>() &#123;<br>                <span class="hljs-meta">@Override</span><br>                <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>                    <span class="hljs-comment">// 执行目标方法</span><br>                    <span class="hljs-keyword">return</span> method.invoke(bean, args);<br>                &#125;<br>            &#125;);<br>            <span class="hljs-comment">// 创建代理对象</span><br>            <span class="hljs-keyword">return</span> enhancer.create();<br>        &#125;<br>        <span class="hljs-keyword">return</span> bean;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>Test相关信息</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs kotlin">    <span class="hljs-keyword">package</span> org.example.service;<br><br><span class="hljs-keyword">import</span> jakarta.<span class="hljs-keyword">annotation</span>.Resource;<br><span class="hljs-keyword">import</span> org.example.lifecycle.User;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.boot.test.context.SpringBootTest;<br><br><span class="hljs-meta">@SpringBootTest</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BeanLifeCycle</span> &#123;<br>    <span class="hljs-meta">@Resource</span><br>    User user;<br><br>    <span class="hljs-meta">@Test</span><br>    <span class="hljs-keyword">public</span> void testBean() &#123;<br>        System.<span class="hljs-keyword">out</span>.println(user.toString());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>打印结果<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-keyword">User</span> 的构造方法执行 <span class="hljs-comment">------</span><br>setBeanName 方法执行<span class="hljs-comment">---------</span><br>beanFactory 方法执行 <span class="hljs-comment">-------</span><br>setApplicationContext方法执行了<span class="hljs-comment">------</span><br>postProcessBeforeInitialization方法 -&gt; <span class="hljs-keyword">user</span>对象初始化前增强<br>init方法执行<span class="hljs-comment">---------</span><br>afterPropertiesSet方法执行<span class="hljs-comment">----------</span><br>postProcessAfterInitialization方法 -&gt; <span class="hljs-keyword">user</span>对象方法初始化后开始增强<br><span class="hljs-keyword">User</span> 的构造方法执行 <span class="hljs-comment">------</span><br><span class="hljs-keyword">User</span>&#123;userName=<span class="hljs-string">&#x27;秦始皇&#x27;</span>, registerDate=<span class="hljs-keyword">null</span>, <span class="hljs-keyword">password</span>=<span class="hljs-string">&#x27;null&#x27;</span>&#125;<br>destroy方法执行<span class="hljs-comment">---------</span><br><br>进程已结束,退出代码<span class="hljs-number">0</span><br><br></code></pre></td></tr></table></figure></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Spring-Bean/" class="print-no-link">#Spring Bean</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Spring Bean生命周期&amp;循环依赖</div>
+      <div>http://example.com/2024/08/07/Spring-Bean生命周期-循环依赖/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年8月7日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/08/07/Spring-AOP%E5%88%87%E9%9D%A2%E7%BC%96%E7%A8%8B-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86-%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/" title="Spring AOP切面编程&amp;动态代理&amp;反射机制">
+                        <span class="hidden-mobile">Spring AOP切面编程&amp;动态代理&amp;反射机制</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
